@@ -22,6 +22,7 @@ public:
 	bool BuildFromSource(const string &vs_src, const string &fs_src);
     bool BuildFromFiles (const string &vs_src, const string &fs_src);
     bool TrySetUniform(string name, float44 mat);
+    bool TrySetUniform(string name, GLuint mat);
     void Purge();
 
     bool IsValid() const;

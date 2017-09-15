@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 
+#include "texture.h"
 #include "program.h"
 #include "mesh.h"
 
@@ -48,28 +49,13 @@ bool InitGLEW() {
 }
 
 Program test;
-
+Texture texture;
 
 bool InitResources() {
     test.BuildFromFiles("shaders/test.vs", "shaders/test.fs");
-
-	return true;
-}
-
-GLuint CreateGLTexture() {
-	GLuint id;
-
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    texture.LoadFromFile("res/tex/test.jpg");
 	
-	return id;
+    return true;
 }
 
 double deg2rad(double degrees) {
@@ -88,6 +74,12 @@ void DrawFullScreenQuad() {
     test.TrySetUniform("u_projection", perp);
     test.TrySetUniform("u_model", model);
     test.TrySetUniform("u_view", view);
+    
+    texture.SetDefaultParams();
+    texture.BindToSlot(0);
+    if (!test.TrySetUniform("t_diffuse", 0)) {
+        throw runtime_error("Failed to set texture uniform");
+    }
 
     glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
     glDisable(GL_CULL_FACE);
@@ -110,9 +102,17 @@ void DrawFullScreenQuad() {
         1,  0,  3
     };
 
+    vector<float2> texcoord1 = {
+        {0.0, 0.0},
+        {0.0, 1.0},
+        {1.0, 0.0},
+        {1.0, 1.0}
+    };
+
     Mesh test_mesh;
-    
+
     test_mesh.SetPosition(diamond);
+    test_mesh.SetTexCoord1(texcoord1);
     test_mesh.SetColor(colors);
 
     test_mesh.SetIndex(indices);

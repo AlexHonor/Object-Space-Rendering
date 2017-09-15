@@ -28,6 +28,7 @@ bool Program::BuildFromSource(const string &vs_src, const string &fs_src) {
 	Attach(vs);
 	
     BindAttributeLocations();
+    glBindFragDataLocation(res, 0, "out_color"); GLERR;
 
 	glLinkProgram(res); GLERR;
 
@@ -71,6 +72,18 @@ bool Program::TrySetUniform(string name, float44 mat) {
     if (location != -1) {
         Use(); GLERR;
         glUniformMatrix4fv(location, 1, GL_FALSE, &mat.a[0][0]); GLERR;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Program::TrySetUniform(string name, GLuint val) {
+    GLuint location = glGetUniformLocation(res, name.c_str()); GLERR;
+    bool is_valid = IsValid();
+    if (location != -1) {
+        Use(); GLERR;
+        glUniform1i(location, val); GLERR;
         return true;
     } else {
         return false;
