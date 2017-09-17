@@ -75,6 +75,12 @@ void Draw() {
     ctx.view.Identity();
     ctx.model.Identity();
 
+
+    float3 vec;
+    boost::qvm::X(vec) = 0;
+    boost::qvm::Y(vec) = 0;
+    boost::qvm::Z(vec) = -3;
+    ctx.model.Translate(vec);
     ctx.model.RotateZ(deg2rad(SDL_GetTicks()/200.));
 
     frame.Begin();
@@ -92,40 +98,8 @@ void Draw() {
     glViewport(0, 0, w, h); GLERR;
     glDisable(GL_CULL_FACE); GLERR;
     glDisable(GL_DEPTH_TEST); GLERR;
-    vector<float3> diamond = {
-        { 0.0,  1.0, -0.9f }, /* Top point */
-        { 1.0,  0.0, -0.9f}, /* Right point */
-        { 0.0, -1.0, -0.9f }, /* Bottom point */
-        {-1.0,  0.0, -0.9f} }; /* Left point */
 
-    vector<float3> colors = {
-        {1.0,  0.0,  0.0}, /* Red */
-        {0.0,  1.0,  0.0}, /* Green */
-        {0.0,  0.0,  1.0}, /* Blue */
-        {1.0,  1.0,  1.0}
-    }; /* White */
-
-    vector<unsigned> indices = {
-        1,  2,  3,
-        1,  0,  3
-    };
-
-    vector<float2> texcoord1 = {
-        {0.0, 1.0},
-        {1.0, 1.0},
-        {1.0, 0.0},
-        {0.0, 0.0}
-    };
-
-    Mesh test_mesh;
-
-    test_mesh.SetPosition(diamond);
-    test_mesh.SetTexCoord1(texcoord1);
-    test_mesh.SetColor(colors);
-
-    test_mesh.SetIndex(indices);
-
-    test_mesh.Draw();
+    FullScreenQuad::Instance().Draw();
 
 	glFinish();
 
@@ -147,7 +121,7 @@ void Draw() {
     glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT); GLERR;
     glDisable(GL_CULL_FACE); GLERR;
 
-    test_mesh.Draw();
+    FullScreenQuad::Instance().Draw();
     glFinish();
 }
 

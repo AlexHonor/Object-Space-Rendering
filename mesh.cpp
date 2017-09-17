@@ -1,5 +1,46 @@
 #include "mesh.h"
 
+FullScreenQuad::FullScreenQuad() {
+    vector<float3> position = {
+        {-1.0,  1.0, -1.0f },
+        { 1.0,  1.0, -1.0f },
+        { 1.0, -1.0, -1.0f },
+        {-1.0, -1.0, -1.0f }
+    };
+
+    vector<float3> colors = {
+        { 1.0,  0.0,  0.0 },
+        { 0.0,  1.0,  0.0 },
+        { 0.0,  0.0,  1.0 },
+        { 1.0,  1.0,  1.0 }
+    };
+
+    vector<unsigned> indices = {
+        1,  2,  3,
+        1,  0,  3
+    };
+
+    vector<float2> texcoord1 = {
+        { 0.0, 1.0 },
+        { 1.0, 1.0 },
+        { 1.0, 0.0 },
+        { 0.0, 0.0 }
+    };
+
+    SetPosition(position);
+    SetTexCoord1(texcoord1);
+    SetColor(colors);
+
+    SetIndex(indices);
+}
+
+const FullScreenQuad& FullScreenQuad::Instance() {
+    static FullScreenQuad instance;
+    return instance;
+}
+
+FullScreenQuad::~FullScreenQuad() = default;
+
 Mesh::Mesh() {
     GLuint id;
     glGenVertexArrays(1, &id);
@@ -48,18 +89,18 @@ GLint Mesh::GetCurrentVAO() {
     return current_vao;
 }
 
-void Mesh::Draw() {
+void Mesh::Draw() const {
     Bind();
     index.BindIndices();
     glDrawElements(GL_TRIANGLES, index.GetSize(), GL_UNSIGNED_INT, nullptr); GLERR;
     UnBind();
 }
 
-void Mesh::Bind() {
+void Mesh::Bind() const {
     glBindVertexArray(res); GLERR;
 }
 
-void Mesh::UnBind() {
+void Mesh::UnBind() const {
     glBindVertexArray(0);
 }
 
@@ -93,11 +134,11 @@ bool VertexAttrib::Set(const vector<type> &data, uint32_t dim, Program::VertexAt
     return true;
 }
 
-size_t VertexAttrib::GetSize() {
+size_t VertexAttrib::GetSize() const {
     return size;
 }
 
-void VertexAttrib::BindIndices() {
+void VertexAttrib::BindIndices() const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, res); GLERR;
 }
 

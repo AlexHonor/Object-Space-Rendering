@@ -14,9 +14,9 @@ public:
     template<typename type>
     bool Set(const vector<type> &data, uint32_t dim, Program::VertexAttribute attrib);
 
-    void BindIndices();
+    void BindIndices() const;
 
-    size_t GetSize();
+    size_t GetSize() const;
 
     ~VertexAttrib();
 private:
@@ -37,13 +37,24 @@ public:
     void SetTexCoord2(vector<float2> data);
 
     GLint GetCurrentVAO();
-    void Draw();
+    void Draw() const;
 
     ~Mesh();
 private:
-    void Bind();
-    void UnBind();
+    void Bind() const;
+    void UnBind() const;
 
     VertexAttrib position, index, normal, color, texcoord1, texcoord2;
     GLResource res;
+};
+
+class FullScreenQuad : public Mesh {
+public:
+    static const FullScreenQuad& Instance();
+private:
+    FullScreenQuad();
+    ~FullScreenQuad();
+
+    FullScreenQuad(FullScreenQuad const&) = delete;
+    FullScreenQuad& operator=(FullScreenQuad const&) = delete;
 };
