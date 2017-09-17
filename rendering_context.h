@@ -2,25 +2,50 @@
 
 #include "inc.h"
 #include "utility.h"
+#include "program.h"
 
 #include <stack>
 
 using namespace std;
 
+class RenderingContext;
+
+class MatrixStack {
+public:
+    MatrixStack();
+
+    void Perspective(float rad_fov, float aspect, float near, float far);
+
+    void Rotate(float3 axis, float rad_angle);
+
+    void RotateX(float rad_angle);
+    void RotateY(float rad_angle);
+    void RotateZ(float rad_angle);
+
+    void Translate(float3 vec);
+    void Scale(float3 scale);
+
+    void Push();
+    void Pop();
+
+    void Identity();
+
+    ~MatrixStack();
+
+    friend class RenderingContext;
+private:
+    stack<float44> data;
+};
+
 class RenderingContext {
 public:
     RenderingContext();
 
-    void Push(float44 mat);
-    float44 Pop();
-
-    float44 &Proj();
-    float44 &Model();
-    float44 &View();
-
+    bool ApplyContext(const Program& prog) const;
+    
     ~RenderingContext();
-private:
-    stack<float44> proj;
-    stack<float44> model;
-    stack<float44> view;
+
+    MatrixStack proj;
+    MatrixStack model;
+    MatrixStack view;
 };

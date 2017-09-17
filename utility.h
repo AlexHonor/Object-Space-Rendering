@@ -11,6 +11,9 @@ using namespace std;
 
 string ReadFile(string filename);
 
+
+double deg2rad(double degrees);
+
 class GLResource {
 public:
     GLResource();

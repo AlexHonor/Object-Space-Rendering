@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 
+#include "rendering_context.h"
 #include "renderable_texture.h"
 #include "texture.h"
 #include "program.h"
@@ -59,11 +60,7 @@ bool InitResources() {
     return true;
 }
 
-double deg2rad(double degrees) {
-    return degrees * 4.0 * atan(1.0) / 180.0;
-}
-
-void DrawFullScreenQuad() {    
+void Draw() {    
     RenderableTexture frame;
     Texture screen;
     static const size_t w = 1000;
@@ -71,20 +68,20 @@ void DrawFullScreenQuad() {
 
     screen.CreateEmpty(w, h);
     frame.Create(screen);
-
-    float44 perp = boost::qvm::perspective_rh<float>(deg2rad(90.0f), 1, 0.01, 100);
-    float44 model, view;
-    boost::qvm::set_identity(model);
-    boost::qvm::set_identity(view);
-
-    boost::qvm::rotate_z(model, deg2rad(SDL_GetTicks()/200.));
     
+    RenderingContext ctx;
+
+    ctx.proj.Perspective(deg2rad(90.0f), 1, 0.01, 100);
+    ctx.view.Identity();
+    ctx.model.Identity();
+
+    ctx.model.RotateZ(deg2rad(SDL_GetTicks()/200.));
+
     frame.Begin();
     test.Use();
-    test.TrySetUniform("u_projection", perp);
-    test.TrySetUniform("u_model", model);
-    test.TrySetUniform("u_view", view);
     
+    ctx.ApplyContext(test);
+
     texture.SetDefaultParams();
     texture.BindToSlot(0);
 
@@ -132,18 +129,14 @@ void DrawFullScreenQuad() {
 
 	glFinish();
 
-    boost::qvm::set_identity(perp);
-    
-    perp = boost::qvm::perspective_rh<float>(deg2rad(90.0f), (float)DEFAULT_WIDTH / DEFAULT_HEIGHT, 0.01, 100);
-    boost::qvm::set_identity(model);
-    boost::qvm::set_identity(view);
+    ctx.proj.Perspective(deg2rad(90.0f), (float)DEFAULT_WIDTH / DEFAULT_HEIGHT, 0.01, 100);
+    ctx.model.Identity();
+    ctx.view.Identity();
 
-    //boost::qvm::rotate_z(model, deg2rad(45.));
     frame.End();
+    
     test.Use();
-    test.TrySetUniform("u_projection", perp);
-    test.TrySetUniform("u_model", model);
-    test.TrySetUniform("u_view", view);
+    ctx.ApplyContext(test);
 
     screen.SetDefaultParams();
     screen.BindToSlot(1);
@@ -199,7 +192,7 @@ void Loop(SDL_Window *window) {
 			Tick();
 		}
 		
-		DrawFullScreenQuad();
+		Draw();
 		SDL_GL_SwapWindow(window);
 	}
 }

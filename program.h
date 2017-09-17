@@ -16,13 +16,13 @@ public:
     Program();
 	Program(const string &vs_filename, const string &fs_filename);
 
-	void Use();
+	void Use() const;
 
     void BindAttributeLocations();
 	bool BuildFromSource(const string &vs_src, const string &fs_src);
     bool BuildFromFiles (const string &vs_src, const string &fs_src);
-    bool TrySetUniform(string name, float44 mat);
-    bool TrySetUniform(string name, GLuint mat);
+    bool TrySetUniform(string name, float44 mat) const;
+    bool TrySetUniform(string name, GLuint mat) const;
     void Purge();
 
     bool IsValid() const;

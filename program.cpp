@@ -8,7 +8,7 @@ Program::Program(const string &vs_src, const string &fs_src) {
 	}
 }
 
-void Program::Use() {
+void Program::Use() const {
 	glUseProgram(res); GLERR;
 }
 
@@ -66,7 +66,7 @@ void Program::BindAttributeLocations() {
     glBindAttribLocation(res, VertexAttribute::TEXCOORD2, "a_texcoord2"); GLERR;
 }
 
-bool Program::TrySetUniform(string name, float44 mat) {
+bool Program::TrySetUniform(string name, float44 mat) const {
     GLuint location = glGetUniformLocation(res, name.c_str()); GLERR;
     bool is_valid = IsValid();
     if (location != -1) {
@@ -78,7 +78,7 @@ bool Program::TrySetUniform(string name, float44 mat) {
     }
 }
 
-bool Program::TrySetUniform(string name, GLuint val) {
+bool Program::TrySetUniform(string name, GLuint val) const {
     GLuint location = glGetUniformLocation(res, name.c_str()); GLERR;
     bool is_valid = IsValid();
     if (location != -1) {

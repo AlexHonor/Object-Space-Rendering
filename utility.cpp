@@ -50,6 +50,10 @@ void GLResource::Purge() {
 	is_purged = true;
 }
 
+double deg2rad(double degrees) {
+    return degrees * 4.0 * atan(1.0) / 180.0;
+}
+
 void swap(GLResource &a, GLResource &b) {
 	swap(a.is_purged, b.is_purged);
 	swap(a.id, b.id);
