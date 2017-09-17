@@ -67,7 +67,6 @@ Mesh::~Mesh() {
     if (!res.IsPurged()) {
         GLuint id = res;
         glDeleteVertexArrays(1, &id); GLERR;
-        res.Purge();
     }
 }
 
@@ -107,6 +106,5 @@ VertexAttrib::~VertexAttrib() {
     if (!res.IsPurged()) {
         GLuint id = res;
         glDeleteBuffers(1, &id); GLERR;
-        res.Purge();
     }
 }

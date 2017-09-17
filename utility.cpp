@@ -47,7 +47,7 @@ GLResource::operator GLuint() const {
 }
 
 void GLResource::Purge() {
-	is_purged = false;
+	is_purged = true;
 }
 
 void swap(GLResource &a, GLResource &b) {

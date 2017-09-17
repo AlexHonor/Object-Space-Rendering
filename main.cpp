@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 
+#include "renderable_texture.h"
 #include "texture.h"
 #include "program.h"
 #include "mesh.h"
@@ -63,13 +64,22 @@ double deg2rad(double degrees) {
 }
 
 void DrawFullScreenQuad() {    
-    float44 perp = boost::qvm::perspective_rh<float>(deg2rad(90.0f), (float)DEFAULT_WIDTH/DEFAULT_HEIGHT, 0.01, 100);
+    RenderableTexture frame;
+    Texture screen;
+    static const size_t w = 1000;
+    static const size_t h = 1000;
+
+    screen.CreateEmpty(w, h);
+    frame.Create(screen);
+
+    float44 perp = boost::qvm::perspective_rh<float>(deg2rad(90.0f), 1, 0.01, 100);
     float44 model, view;
     boost::qvm::set_identity(model);
     boost::qvm::set_identity(view);
 
-    boost::qvm::rotate_z(perp, deg2rad(45));
+    boost::qvm::rotate_z(model, deg2rad(SDL_GetTicks()/200.));
     
+    frame.Begin();
     test.Use();
     test.TrySetUniform("u_projection", perp);
     test.TrySetUniform("u_model", model);
@@ -77,24 +87,25 @@ void DrawFullScreenQuad() {
     
     texture.SetDefaultParams();
     texture.BindToSlot(0);
+
     if (!test.TrySetUniform("t_diffuse", 0)) {
         throw runtime_error("Failed to set texture uniform");
     }
 
-    glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-    glDisable(GL_CULL_FACE);
-
+    glViewport(0, 0, w, h); GLERR;
+    glDisable(GL_CULL_FACE); GLERR;
+    glDisable(GL_DEPTH_TEST); GLERR;
     vector<float3> diamond = {
-        { 0.0,  1.0, -1.1f }, /* Top point */
-        { 1.0,  0.0, -1.1f}, /* Right point */
-        { 0.0, -1.0, -1.1f }, /* Bottom point */
-        {-1.0,  0.0, -1.1f} }; /* Left point */
+        { 0.0,  1.0, -0.9f }, /* Top point */
+        { 1.0,  0.0, -0.9f}, /* Right point */
+        { 0.0, -1.0, -0.9f }, /* Bottom point */
+        {-1.0,  0.0, -0.9f} }; /* Left point */
 
     vector<float3> colors = {
         {1.0,  0.0,  0.0}, /* Red */
-        {0.0,  1.0,  0.0 }, /* Green */
+        {0.0,  1.0,  0.0}, /* Green */
         {0.0,  0.0,  1.0}, /* Blue */
-        {1.0,  1.0,  1.0 }
+        {1.0,  1.0,  1.0}
     }; /* White */
 
     vector<unsigned> indices = {
@@ -103,10 +114,10 @@ void DrawFullScreenQuad() {
     };
 
     vector<float2> texcoord1 = {
-        {0.0, 0.0},
         {0.0, 1.0},
+        {1.0, 1.0},
         {1.0, 0.0},
-        {1.0, 1.0}
+        {0.0, 0.0}
     };
 
     Mesh test_mesh;
@@ -120,6 +131,31 @@ void DrawFullScreenQuad() {
     test_mesh.Draw();
 
 	glFinish();
+
+    boost::qvm::set_identity(perp);
+    
+    perp = boost::qvm::perspective_rh<float>(deg2rad(90.0f), (float)DEFAULT_WIDTH / DEFAULT_HEIGHT, 0.01, 100);
+    boost::qvm::set_identity(model);
+    boost::qvm::set_identity(view);
+
+    //boost::qvm::rotate_z(model, deg2rad(45.));
+    frame.End();
+    test.Use();
+    test.TrySetUniform("u_projection", perp);
+    test.TrySetUniform("u_model", model);
+    test.TrySetUniform("u_view", view);
+
+    screen.SetDefaultParams();
+    screen.BindToSlot(1);
+    if (!test.TrySetUniform("t_diffuse", 1)) {
+        throw runtime_error("Failed to set texture uniform");
+    }
+
+    glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT); GLERR;
+    glDisable(GL_CULL_FACE); GLERR;
+
+    test_mesh.Draw();
+    glFinish();
 }
 
 void DestroyResources() {

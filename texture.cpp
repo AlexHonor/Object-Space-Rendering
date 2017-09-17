@@ -14,6 +14,11 @@ bool Texture::Create() {
     return false;
 }
 
+bool Texture::IsValid() const {
+    auto ret = glIsTexture(res); GLERR;
+    return ret;
+}
+
 bool Texture::SetDefaultParams() {
     Create();
     
@@ -31,7 +36,7 @@ bool Texture::SetDefaultParams() {
 
 void Texture::BindToSlot(GLuint slot) {
     glActiveTexture(GL_TEXTURE0 + slot); GLERR;
-    glBindTexture(GL_TEXTURE_2D, slot); GLERR;
+    glBindTexture(GL_TEXTURE_2D, res); GLERR;
 }
 
 bool Texture::CreateEmpty(size_t w, size_t h) {
@@ -72,6 +77,5 @@ Texture::~Texture() {
     if (!res.IsPurged()) {
         GLuint id = res;
         glDeleteTextures(1, &id);
-        res.Purge();
     }
 }

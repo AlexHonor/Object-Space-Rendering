@@ -156,6 +156,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="program.cpp" />
+    <ClCompile Include="renderable_texture.cpp" />
     <ClCompile Include="rendering_context.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="inc.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="program.h" />
+    <ClInclude Include="renderable_texture.h" />
     <ClInclude Include="rendering_context.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />

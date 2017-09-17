@@ -32,12 +32,11 @@ void Shader::Compile(const string &src, GLenum type) {
 }
 	
 Shader::operator bool() const {
-	return res.IsPurged();
+	return !res.IsPurged();
 }
 
 Shader::~Shader() {
 	if (!res.IsPurged()) {
 		glDeleteShader(res); GLERR;
-		res.Purge();
 	}
 }
