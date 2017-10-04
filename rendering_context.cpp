@@ -4,11 +4,11 @@ using namespace boost;
 
 RenderingContext::RenderingContext() = default;
 
-bool RenderingContext::ApplyContext(const Program& prog) const {
-    prog.Use();
-    prog.TrySetUniform("u_projection", proj.data.top());
-    prog.TrySetUniform("u_model"     , model.data.top());
-    prog.TrySetUniform("u_view"      , view.data.top());
+bool RenderingContext::ApplyContext(const std::shared_ptr<Program>& prog) const {
+    prog->Use();
+    prog->TrySetUniform("u_projection", proj.data.top());
+    prog->TrySetUniform("u_model"     , model.data.top());
+    prog->TrySetUniform("u_view"      , view.data.top());
     return true;
 }
 

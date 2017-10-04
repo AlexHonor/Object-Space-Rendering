@@ -2,7 +2,7 @@
 
 #include "shader.h"
 
-class Program {
+class Program : public GLResource {
 public:
     enum VertexAttribute {
         POSITION,
@@ -23,7 +23,7 @@ public:
     bool BuildFromFiles (const string &vs_src, const string &fs_src);
     bool TrySetUniform(string name, float44 mat) const;
     bool TrySetUniform(string name, GLuint mat) const;
-    void Purge();
+    void Purge() override;
 
     bool IsValid() const;
 
@@ -35,5 +35,5 @@ protected:
 
 	string name;
 
-	GLResource res;
+	GLid res;
 };

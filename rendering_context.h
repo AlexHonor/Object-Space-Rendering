@@ -5,8 +5,7 @@
 #include "program.h"
 
 #include <stack>
-
-using namespace std;
+#include <memory>
 
 class RenderingContext;
 
@@ -41,7 +40,7 @@ class RenderingContext {
 public:
     RenderingContext();
 
-    bool ApplyContext(const Program& prog) const;
+    bool ApplyContext(const std::shared_ptr<Program>& prog) const;
     
     ~RenderingContext();
 

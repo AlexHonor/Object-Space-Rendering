@@ -2,12 +2,14 @@
 
 #include <iostream>
 #include <stack>
+#include <memory>
 
 #include "rendering_context.h"
 #include "renderable_texture.h"
 #include "texture.h"
 #include "program.h"
 #include "mesh.h"
+#include "utility.h"
 
 using namespace std;
 
@@ -50,24 +52,29 @@ bool InitGLEW() {
 	return true;
 }
 
-Program test;
-Texture texture;
+shared_ptr<Program> test, render_position_prog;
+shared_ptr<Texture> texture;
 
 bool InitResources() {
-    test.BuildFromFiles("shaders/test.vs", "shaders/test.fs");
-    texture.LoadFromFile("res/tex/test.jpg");
+    texture = GLResourceManager::Instance().New<Texture>();
+    test = GLResourceManager::Instance().New<Program>();
+    render_position_prog = GLResourceManager::Instance().New<Program>();
+    
+    test->BuildFromFiles("shaders/test.vs", "shaders/test.fs");
+    render_position_prog->BuildFromFiles("shaders/render_position.vs", "shaders/render_position.fs");
+    texture->LoadFromFile("res/tex/test.jpg");
 	
     return true;
 }
 
 void Draw() {    
     RenderableTexture frame;
-    Texture screen;
+    shared_ptr<Texture> screen = GLResourceManager::Instance().New<Texture>();
     static const size_t w = 1000;
     static const size_t h = 1000;
 
-    screen.CreateEmpty(w, h);
-    frame.Create(screen);
+    screen->CreateEmpty(w, h);
+    frame.Create(*screen);
     
     RenderingContext ctx;
 
@@ -84,22 +91,20 @@ void Draw() {
     ctx.model.RotateZ(deg2rad(SDL_GetTicks()/200.));
 
     frame.Begin();
-    test.Use();
+    render_position_prog->Use();
     
-    ctx.ApplyContext(test);
+    ctx.ApplyContext(render_position_prog);
 
-    texture.SetDefaultParams();
-    texture.BindToSlot(0);
+    texture->SetDefaultParams();
+    texture->BindToSlot(0);
 
-    if (!test.TrySetUniform("t_diffuse", 0)) {
-        throw runtime_error("Failed to set texture uniform");
-    }
+    render_position_prog->TrySetUniform("t_diffuse", 0);
 
     glViewport(0, 0, w, h); GLERR;
     glDisable(GL_CULL_FACE); GLERR;
     glDisable(GL_DEPTH_TEST); GLERR;
 
-    FullScreenQuad::Instance().Draw();
+    FullScreenQuad::Instance()->Draw();
 
 	glFinish();
 
@@ -109,24 +114,23 @@ void Draw() {
 
     frame.End();
     
-    test.Use();
+    test->Use();
     ctx.ApplyContext(test);
 
-    screen.SetDefaultParams();
-    screen.BindToSlot(1);
-    if (!test.TrySetUniform("t_diffuse", 1)) {
-        throw runtime_error("Failed to set texture uniform");
-    }
+    screen->SetDefaultParams();
+    screen->BindToSlot(1);
+    test->TrySetUniform("t_diffuse", 1);
 
     glViewport(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT); GLERR;
     glDisable(GL_CULL_FACE); GLERR;
 
-    FullScreenQuad::Instance().Draw();
+    FullScreenQuad::Instance()->Draw();
     glFinish();
 }
 
 void DestroyResources() {
-    test.Purge();
+    GLResourceManager::Instance().FreeResources();
+    FullScreenQuad::Instance()->Purge();
 }
 
 void Tick() {
@@ -185,13 +189,14 @@ int main(int argv, const char **argc) {
 		InitResources();
 
 		Loop(window);
-	} catch (runtime_error &ex) {
+    
+        DestroyResources();
+    } catch (runtime_error &ex) {
 		SDL_LogMessage(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_CRITICAL, "Fatal error occured: \"%s\"", ex.what());
 		
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", ex.what(), NULL);
 	}
-    DestroyResources();
-
+    
 	if (ctx) {
 		SDL_GL_DeleteContext(ctx);
 	}

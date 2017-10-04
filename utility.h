@@ -6,6 +6,8 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <memory>
+#include <type_traits>
 
 using namespace std;
 
@@ -14,13 +16,13 @@ string ReadFile(string filename);
 
 double deg2rad(double degrees);
 
-class GLResource {
+class GLid {
 public:
-    GLResource();
-    
-    GLResource(GLuint _id);
+    GLid();
 
-    GLResource &operator=(GLResource res);
+    GLid(GLuint _id);
+
+    GLid &operator=(GLid res);
 
     operator GLuint() const;
 
@@ -28,14 +30,61 @@ public:
 
     void Purge();
 
-    friend void swap(GLResource &a, GLResource &b);
+    friend void swap(GLid &a, GLid &b);
 
 protected:
     bool is_purged;
     GLuint id;
 };
 
-void swap(GLResource &a, GLResource &b);
+void swap(GLid &a, GLid &b);
+
+class GLResource;
+
+class GLResourceManager {
+public:
+    static GLResourceManager& Instance();
+
+    void FreeResources();
+
+    template<typename ConcreteGLResource>
+    shared_ptr<typename ConcreteGLResource> New() {
+        static_assert(is_base_of<GLResource, ConcreteGLResource>::value, "Method new can only create instances with GLResource base class.");
+
+        shared_ptr<ConcreteGLResource> ptr = make_shared<ConcreteGLResource>();
+
+        auto free = find_if(resources.begin(), resources.end(), [](const weak_ptr<GLResource> &ptr) { return ptr.expired(); });
+
+        if (free == resources.end()) {
+            resources.push_back(ptr);
+        } else {
+            *free = ptr;
+        }
+
+        return ptr;
+    }
+
+
+    friend class GLResource;
+private:
+    GLResourceManager() = default;
+    GLResourceManager(const GLResourceManager &manager) = delete;
+    GLResourceManager& operator=(GLResourceManager &manager) = delete;
+    ~GLResourceManager() = default;
+
+    vector<weak_ptr<GLResource>> resources;
+};
+
+class GLResource {
+public:
+    GLResource();
+
+    virtual void Purge() = 0;
+
+    ~GLResource();
+private:
+    GLid id;
+};
 
 #define GLERR ThrowExceptionOnGLError(__LINE__, __FILE__)
 

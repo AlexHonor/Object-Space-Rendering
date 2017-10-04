@@ -14,6 +14,14 @@ bool Texture::Create() {
     return false;
 }
 
+void Texture::Purge() {
+    if (res.IsPurged()) {
+        GLuint glid = res;
+        glDeleteTextures(1, &glid);
+        res.Purge();
+    }
+}
+
 bool Texture::IsValid() const {
     auto ret = glIsTexture(res); GLERR;
     return ret;
@@ -46,7 +54,7 @@ bool Texture::CreateEmpty(size_t w, size_t h) {
     height = h;
 
     glBindTexture(GL_TEXTURE_2D, res); GLERR;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); GLERR;
     glBindTexture(GL_TEXTURE_2D, 0); GLERR;
 
     return true;

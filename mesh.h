@@ -7,12 +7,14 @@
 
 using namespace std;
 
-class VertexAttrib {
+class VertexAttrib : public GLResource {
 public:
     VertexAttrib();
 
     template<typename type>
     bool Set(const vector<type> &data, uint32_t dim, Program::VertexAttribute attrib);
+
+    void Purge();
 
     void BindIndices() const;
 
@@ -21,10 +23,10 @@ public:
     ~VertexAttrib();
 private:
     size_t size;
-    GLResource res;
+    GLid res;
 };
 
-class Mesh {
+class Mesh : public GLResource {
 public:
     Mesh();
     
@@ -39,21 +41,23 @@ public:
     GLint GetCurrentVAO();
     void Draw() const;
 
+    void Purge() override;
+
     ~Mesh();
 private:
     void Bind() const;
     void UnBind() const;
 
     VertexAttrib position, index, normal, color, texcoord1, texcoord2;
-    GLResource res;
+    GLid res;
 };
 
 class FullScreenQuad : public Mesh {
 public:
-    static const FullScreenQuad& Instance();
-private:
     FullScreenQuad();
     ~FullScreenQuad();
+    static shared_ptr<FullScreenQuad> Instance();
+private:
 
     FullScreenQuad(FullScreenQuad const&) = delete;
     FullScreenQuad& operator=(FullScreenQuad const&) = delete;

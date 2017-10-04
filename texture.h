@@ -7,12 +7,14 @@
 
 class RenderableTexture;
 
-class Texture {
+class Texture : public GLResource {
 public:
     Texture();
 
     bool SetDefaultParams();
     bool CreateEmpty(size_t w, size_t h);
+
+    void Purge() override;
 
     bool IsValid() const;
 
@@ -25,6 +27,6 @@ public:
 private:
     bool Create();
     
-    GLResource res;
+    GLid res;
     size_t width, height;
 };

@@ -1,5 +1,27 @@
 #include "utility.h"
 
+GLResource::GLResource() {
+    id.Purge();
+    
+}
+
+GLResource::~GLResource() {
+
+}
+
+GLResourceManager& GLResourceManager::Instance() {
+    static GLResourceManager instance;
+    return instance;
+}
+
+void GLResourceManager::FreeResources() {
+    for (auto resource : resources) {
+        if (!resource.expired()) {
+            (static_cast<shared_ptr<GLResource>>(resource))->Purge();
+        }
+    }
+    resources.clear();
+}
 
 string ReadFile(string filename) {
 	ifstream file(filename);
@@ -20,25 +42,25 @@ string ReadFile(string filename) {
 	return buffer.data();
 }
 
-GLResource::GLResource() {
+GLid::GLid() {
 	is_purged = true;
 }
 
-GLResource::GLResource(GLuint _id) {
+GLid::GLid(GLuint _id) {
 	id = _id;
 	is_purged = false;
 }
 
-bool GLResource::IsPurged() const {
+bool GLid::IsPurged() const {
 	return is_purged;
 }
 
-GLResource &GLResource::operator=(GLResource res) {
+GLid &GLid::operator=(GLid res) {
 	swap(*this, res);
 	return *this;
 }
 
-GLResource::operator GLuint() const {
+GLid::operator GLuint() const {
 	if (!IsPurged()) {
 		return id;
 	} else {
@@ -46,7 +68,7 @@ GLResource::operator GLuint() const {
 	}
 }
 
-void GLResource::Purge() {
+void GLid::Purge() {
 	is_purged = true;
 }
 
@@ -54,7 +76,7 @@ double deg2rad(double degrees) {
     return degrees * 4.0 * atan(1.0) / 180.0;
 }
 
-void swap(GLResource &a, GLResource &b) {
+void swap(GLid &a, GLid &b) {
 	swap(a.is_purged, b.is_purged);
 	swap(a.id, b.id);
 }

@@ -27,5 +27,5 @@ public:
 
 	friend class Program;
 private:
-	GLResource res;
+	GLid res;
 };

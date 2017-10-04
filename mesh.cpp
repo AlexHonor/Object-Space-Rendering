@@ -34,8 +34,8 @@ FullScreenQuad::FullScreenQuad() {
     SetIndex(indices);
 }
 
-const FullScreenQuad& FullScreenQuad::Instance() {
-    static FullScreenQuad instance;
+shared_ptr<FullScreenQuad> FullScreenQuad::Instance() {
+    static auto instance = GLResourceManager::Instance().New<FullScreenQuad>();
     return instance;
 }
 
@@ -45,6 +45,21 @@ Mesh::Mesh() {
     GLuint id;
     glGenVertexArrays(1, &id);
     res = id;
+}
+
+void Mesh::Purge() {
+    if (!res.IsPurged()) {
+        position.Purge();
+        index.Purge();
+        normal.Purge();
+        color.Purge();
+        texcoord1.Purge();
+        texcoord2.Purge();
+
+        GLuint glid = res;
+        glDeleteVertexArrays(1, &glid);
+        res.Purge();
+    }
 }
 
 void Mesh::SetIndex(vector<unsigned> data) {
@@ -105,16 +120,21 @@ void Mesh::UnBind() const {
 }
 
 Mesh::~Mesh() {
-    if (!res.IsPurged()) {
-        GLuint id = res;
-        glDeleteVertexArrays(1, &id); GLERR;
-    }
+    Purge();
 }
 
 VertexAttrib::VertexAttrib() {
     GLuint id;
     glGenBuffers(1, &id); GLERR;
     res = id;
+}
+
+void VertexAttrib::Purge() {
+    if (!res.IsPurged()) {
+        GLuint id = res;
+        glDeleteBuffers(1, &id); GLERR;
+        res.Purge();
+    }
 }
 
 template<typename type>
@@ -144,8 +164,5 @@ void VertexAttrib::BindIndices() const {
 
 
 VertexAttrib::~VertexAttrib() {
-    if (!res.IsPurged()) {
-        GLuint id = res;
-        glDeleteBuffers(1, &id); GLERR;
-    }
+    Purge();
 }
