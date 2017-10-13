@@ -3,6 +3,8 @@
 #include "inc.h"
 #include "utility.h"
 #include "program.h"
+#include "renderable_texture.h"
+#include "texture.h"
 #include <type_traits>
 
 using namespace std;
@@ -40,6 +42,13 @@ public:
 
     GLint GetCurrentVAO();
     void Draw() const;
+    void DrawStrips();
+
+    void BakeMaps(size_t map_w, size_t map_h);
+
+    void BindPositionTex(unsigned id);
+    void BindNormalTex(unsigned id);
+    void BindTexCoordTex(unsigned id);
 
     void Purge() override;
 
@@ -47,6 +56,8 @@ public:
 private:
     void Bind() const;
     void UnBind() const;
+
+    shared_ptr<Texture> position_tex, normal_tex, texcoord_tex;
 
     VertexAttrib position, index, normal, color, texcoord1, texcoord2;
     GLid res;

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "utility.h"
 #include "shader.h"
+
+shared_ptr<Program> ProgFromFile(string filename_v, string filename_f);
 
 class Program : public GLResource {
 public:

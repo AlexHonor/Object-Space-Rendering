@@ -2,10 +2,10 @@
 
 FullScreenQuad::FullScreenQuad() {
     vector<float3> position = {
-        {-1.0,  1.0, -1.0f },
-        { 1.0,  1.0, -1.0f },
-        { 1.0, -1.0, -1.0f },
-        {-1.0, -1.0, -1.0f }
+        {-1.0,  1.0, 0.0f },
+        { 1.0,  1.0, 0.0f },
+        { 1.0, -1.0, 0.0f },
+        {-1.0, -1.0, 0.0f }
     };
 
     vector<float3> colors = {
@@ -45,6 +45,10 @@ Mesh::Mesh() {
     GLuint id;
     glGenVertexArrays(1, &id);
     res = id;
+
+    position_tex = GLResourceManager::Instance().New<Texture>();
+    normal_tex   = GLResourceManager::Instance().New<Texture>();
+    texcoord_tex = GLResourceManager::Instance().New<Texture>();
 }
 
 void Mesh::Purge() {
@@ -111,12 +115,69 @@ void Mesh::Draw() const {
     UnBind();
 }
 
+void Mesh::DrawStrips() {
+    Bind();
+    glDrawArrays(GL_TRIANGLES, 0, position.GetSize()); GLERR;
+    UnBind();
+}
+
+void Mesh::BindPositionTex(unsigned id) {
+    position_tex->BindToSlot(id);
+}
+
+void Mesh::BindNormalTex(unsigned id) {
+    normal_tex->BindToSlot(id);
+}
+
+void Mesh::BindTexCoordTex(unsigned id) {
+    texcoord_tex->BindToSlot(id);
+}
+
+
+void Mesh::BakeMaps(size_t map_w, size_t map_h) {
+    position_tex->CreateEmpty(map_w, map_h);
+    normal_tex->CreateEmpty(map_w, map_h);
+    texcoord_tex->CreateEmpty(map_w, map_h);
+
+    position_tex->SetDefaultParams();
+    normal_tex->SetDefaultParams();
+    texcoord_tex->SetDefaultParams();
+
+    RenderableTexture bake_target;
+
+    static shared_ptr<Program> prog_position = ProgFromFile("shaders/position.vs","shaders/position.fs");
+    static shared_ptr<Program> prog_normal = ProgFromFile("shaders/normal.vs", "shaders/normal.fs");
+    static shared_ptr<Program> prog_texcoord = ProgFromFile("shaders/texcoord.vs", "shaders/texcoord.fs");
+    
+    glViewport(0, 0, map_w, map_h); GLERR;
+    glDisable(GL_DEPTH_TEST); GLERR;
+    glDisable(GL_CULL_FACE); GLERR;
+
+    bake_target.Create(*position_tex);
+    bake_target.Begin();
+        prog_position->Use();
+        DrawStrips();
+    bake_target.End();
+    
+    bake_target.Create(*normal_tex);
+    bake_target.Begin();
+        prog_normal->Use();
+        DrawStrips();
+    bake_target.End();
+
+    bake_target.Create(*texcoord_tex);
+    bake_target.Begin();
+        prog_texcoord->Use();
+        DrawStrips();
+    bake_target.End();
+}
+
 void Mesh::Bind() const {
     glBindVertexArray(res); GLERR;
 }
 
 void Mesh::UnBind() const {
-    glBindVertexArray(0);
+    glBindVertexArray(0); GLERR;
 }
 
 Mesh::~Mesh() {

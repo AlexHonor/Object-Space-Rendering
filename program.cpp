@@ -1,5 +1,11 @@
 #include "program.h"
 
+shared_ptr<Program> ProgFromFile(string filename_v, string filename_f) {
+    auto prog = GLResourceManager::Instance().New<Program>();
+    prog->BuildFromFiles(filename_v, filename_f);
+    return prog;
+}
+
 Program::Program() {}
 
 Program::Program(const string &vs_src, const string &fs_src) {
