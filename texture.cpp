@@ -60,7 +60,7 @@ bool Texture::CreateEmpty(size_t w, size_t h) {
     return true;
 }
 
-bool Texture::LoadFromFile(string filename) {
+bool Texture::LoadFromFile(const string &filename) {
     Create();
     
     FIBITMAP* bitmap = FreeImage_Load(
@@ -68,17 +68,32 @@ bool Texture::LoadFromFile(string filename) {
         filename.c_str());
 
     FIBITMAP *pImage = FreeImage_ConvertTo32Bits(bitmap);
-    int nWidth = FreeImage_GetWidth(pImage);
-    int nHeight = FreeImage_GetHeight(pImage);
+    width = FreeImage_GetWidth(pImage);
+    height = FreeImage_GetHeight(pImage);
 
     glBindTexture(GL_TEXTURE_2D, res); GLERR;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, nWidth, nHeight,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
                  0, GL_BGRA, GL_UNSIGNED_BYTE, (void*)FreeImage_GetBits(pImage)); GLERR;
     glBindTexture(GL_TEXTURE_2D, 0); GLERR;
 
     FreeImage_Unload(pImage);
     
     return true;
+}
+
+bool Texture::SaveToFile(const string &filename) const {
+    glBindTexture(GL_TEXTURE_2D, res); GLERR;
+    vector<BYTE> pixels(3 * width * height, 0);
+
+    //glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); GLERR;
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels.data()); GLERR;
+    
+    FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels.data(), width, height, 3 * width, 24, 0x0000FF, 0xFF0000, 0x00FF00, false);
+    bool result = FreeImage_Save(FIF_PNG, image, filename.c_str(), 0);
+
+    FreeImage_Unload(image);
+    
+    return result;
 }
 
 Texture::~Texture() {

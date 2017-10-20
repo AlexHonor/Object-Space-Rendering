@@ -19,7 +19,8 @@ public:
     bool IsValid() const;
 
     void BindToSlot(GLuint slot);
-    bool LoadFromFile(string filename);
+    bool SaveToFile(const string &filename) const;
+    bool LoadFromFile(const string &filename);
 
     ~Texture();
 

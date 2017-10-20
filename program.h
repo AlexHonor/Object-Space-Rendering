@@ -24,8 +24,11 @@ public:
     void BindAttributeLocations();
 	bool BuildFromSource(const string &vs_src, const string &fs_src);
     bool BuildFromFiles (const string &vs_src, const string &fs_src);
+    
     bool TrySetUniform(string name, float44 mat) const;
+    bool TrySetUniform(string name, float33 mat) const;
     bool TrySetUniform(string name, GLuint mat) const;
+    
     void Purge() override;
 
     bool IsValid() const;

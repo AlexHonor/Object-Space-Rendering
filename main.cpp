@@ -13,6 +13,14 @@
 
 using namespace std;
 
+enum KeyState {
+    KEY_UP = 0,
+    KEY_DOWN = 1,
+    KEY_PRESSED = 3
+};
+
+KeyState key[255];
+
 SDL_GLContext InitOpenGL(SDL_Window* window) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
@@ -122,9 +130,9 @@ bool InitResources() {
 
     vector<float3> normals =
     {
-        {0, 0, 1},
-        {1, 0, 0},
         {0, 0, -1},
+        {1, 0, 0},
+        {0, 0, 1},
         {-1, 0, 0},
         {0, 1, 0},
         {0, -1, 0}
@@ -176,15 +184,14 @@ bool InitResources() {
                     t++;
                 }
             }
-            cout << texcoord.a[0] * 2 << " " << texcoord.a[1] * 3 << endl;
-
+            
             textureBuffer.push_back(texcoord);
         }
     }
 
     vector<float3> normalBuffer;
     for (int i = 0; i < 36; i++) {
-        normalBuffer.push_back(normals[indices[i / 6]]);
+        normalBuffer.push_back(normals[i / 6]);
     }
 
     for (int i = 0; i < indices.size(); i++) {
@@ -201,6 +208,8 @@ bool InitResources() {
 
     return true;
 }
+
+float3 angle;
 
 void Draw() {
     RenderableTexture frame;
@@ -220,7 +229,11 @@ void Draw() {
 
     float3 vec = { 0, 0, -3 };
     ctx.model.Translate(vec);
-    ctx.model.RotateX(SDL_GetTicks() / 500.0f);
+    
+    ctx.model.RotateX(angle.a[0]);
+    ctx.model.RotateY(angle.a[1]);
+    ctx.model.RotateZ(angle.a[2]);
+
     frame.Begin();
     render_position_prog->Use();
 
@@ -247,7 +260,7 @@ void Draw() {
     test->Use();
     ctx.ApplyContext(test);
 
-    static auto simple_prog = ProgFromFile("shaders/simple.vs", "shaders/simple.fs");
+    static auto simple_prog = ProgFromFile("shaders/pbr_material.vs", "shaders/pbr_material.fs");
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -259,14 +272,15 @@ void Draw() {
     simple_prog->Use();
     ctx.ApplyContext(simple_prog);
     cube->BindPositionTex(2);
-    simple_prog->TrySetUniform("t_diffuse", 2);
+    cube->BindNormalTex(3);
+    simple_prog->TrySetUniform("t_position", 2);
+    simple_prog->TrySetUniform("t_normal", 3);
     cube->DrawStrips();
     
     screen->SetDefaultParams();
     screen->BindToSlot(1);
     test->TrySetUniform("t_diffuse", 1);
 
-    
     //FullScreenQuad::Instance()->Draw();
     glFinish();
 }
@@ -277,7 +291,16 @@ void DestroyResources() {
 }
 
 void Tick() {
+    float speed = 0.05;
 
+    float dx = key[SDL_SCANCODE_UP] - key[SDL_SCANCODE_DOWN];
+    float dy = key[SDL_SCANCODE_LEFT] - key[SDL_SCANCODE_RIGHT];
+    
+    dx *= speed;
+    dy *= speed;
+
+    angle.a[0] += dx;
+    angle.a[1] += dy;
 }
 
 void Loop(SDL_Window *window) {
@@ -289,14 +312,31 @@ void Loop(SDL_Window *window) {
 	int time_to_process = 0;
 
 	while (!quit) {
+        for (auto& k : key) {
+            if (k == KEY_PRESSED) {
+                k = KEY_DOWN;
+            }
+        }
+
 		while (SDL_PollEvent(&event)) {
-			if (event.type == SDL_QUIT) {
-				quit = true;
-			} else if (event.type == SDL_KEYDOWN) {
-				if (event.key.keysym.sym == SDLK_ESCAPE) {
-					quit = true;
-				}
-			}
+            switch (event.type) {
+                case SDL_QUIT:
+                {
+                    quit = true;
+                } break;
+                case SDL_KEYDOWN: 
+                {
+                    if (event.key.keysym.sym == SDLK_ESCAPE) {
+                        quit = true;
+                    } else {
+                        key[event.key.keysym.scancode] = KEY_PRESSED;
+                    }
+                } break;
+                case SDL_KEYUP:
+                {
+                    key[event.key.keysym.scancode] = KEY_UP;
+                }
+            }
 		}
 
 		int current_time = SDL_GetTicks();

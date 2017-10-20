@@ -84,6 +84,18 @@ bool Program::TrySetUniform(string name, float44 mat) const {
     }
 }
 
+bool Program::TrySetUniform(string name, float33 mat) const {
+    GLuint location = glGetUniformLocation(res, name.c_str()); GLERR;
+    bool is_valid = IsValid();
+    if (location != -1) {
+        Use(); GLERR;
+        glUniformMatrix3fv(location, 1, GL_FALSE, &mat.a[0][0]); GLERR;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 bool Program::TrySetUniform(string name, GLuint val) const {
     GLuint location = glGetUniformLocation(res, name.c_str()); GLERR;
     bool is_valid = IsValid();
